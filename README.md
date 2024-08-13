@@ -1,13 +1,11 @@
-# Express + TypeScript Template
-
-This template provides a robust setup for an Express backend application with TypeScript. It follows best practices for backend development, utilizing TypeScript for type safety, Jest for testing, and ESLint for code quality.
+# Coffee Review Backend
 
 ## Getting Started
 
 1. Clone the repository
 
    ```nodejs
-   git clone https://github.com/Endeyr/express-template
+   git clone https://github.com/Endeyr/coffee-review-backend
    ```
 
 2. Install dependencies:
@@ -38,6 +36,7 @@ The project uses the following main dependencies:
 - zod: A TypeScript-first schema declaration and validation library.
 - cors: Middleware to enable CORS in Express applications.
 - dotenv: A zero-dependency module that loads environment variables from a .env file.
+- googleapis: Node.js client library for using Google APIs.
 
 ## Dev Dependencies
 

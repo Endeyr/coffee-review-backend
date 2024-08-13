@@ -32,3 +32,6 @@ notes.md
 # Docker
 .dockerignore
 Dockerfile
+
+# Google API
+coffee-review-backend-db-a8755424ac92.json

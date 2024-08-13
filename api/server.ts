@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import express from 'express'
 import http from 'node:http'
 import path from 'node:path'
+// import { getSheet } from '../google/main'
 import { CLIENT_HOST, PORT } from '../utils/config'
 
 dotenv.config()
@@ -21,6 +22,8 @@ app.use(bodyParser.json())
 
 app.get('/', (req, res) => {
 	console.log(req.headers.host)
+	// const sheetData = await getSheet()
+	// console.log(sheetData)
 	res
 		.status(200)
 		.send(
