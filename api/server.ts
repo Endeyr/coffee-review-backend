@@ -5,6 +5,7 @@ import express from 'express'
 import http from 'node:http'
 import path from 'node:path'
 // import { getSheet } from '../google/main'
+import userRouter from '../routes/userRoutes'
 import { CLIENT_HOST, PORT } from '../utils/config'
 
 dotenv.config()
@@ -19,6 +20,10 @@ app.options('*', cors(corsOptions))
 const server: http.Server = http.createServer(app)
 app.use(express.urlencoded({ extended: true }))
 app.use(bodyParser.json())
+
+// TODO write routes + controllers for user auth + data
+// Routes
+app.use('/user', userRouter)
 
 app.get('/', (req, res) => {
 	console.log(req.headers.host)
@@ -46,3 +51,5 @@ server
 			process.kill(process.pid, 'SIGINT')
 		})
 	})
+
+export default app
