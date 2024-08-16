@@ -1,5 +1,5 @@
-import { SERVICE_ACCOUNT_KEY_FILE } from './../utils/config'
 import { google, type sheets_v4 } from 'googleapis'
+import { SERVICE_ACCOUNT_KEY_FILE } from './../utils/config'
 
 export async function _getGoogleSheetClient() {
 	const auth = new google.auth.GoogleAuth({
