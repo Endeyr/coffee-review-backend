@@ -1,18 +1,53 @@
+import bcrypt from 'bcryptjs'
 import { Request, Response } from 'express'
+import { getUser } from '../google/main'
+import { generateToken } from '../helpers/generateToken'
+import UserModel from '../model/user'
 
 // @desc Register new user
 // @route POST /user/register
 // @access Public
-export const registerUser = (req: Request, res: Response) => {
-	const { username, email, password } = req.body
-	return res.status(200).json({ username, email, password })
-	// search db for existing user
-	// if existing user return error
-	// salt + hash password
-	// create new user with model
-	// save user to db
-	// generate token based on user
-	// return status, success, and user data including token
+export const registerUser = async (req: Request, res: Response) => {
+	try {
+		const { username, email, password } = req.body
+		// Validate input
+		if (!username || !email || !password) {
+			return res.status(400).json({ message: 'All fields are required' })
+		}
+		// search db for existing user
+		const existingUser = await getUser(email)
+		// if existing user return error
+		if (existingUser) {
+			return res
+				.status(400)
+				.json({ message: 'User already registered, please sign in' })
+		}
+		// salt + hash password
+		const salt = await bcrypt.genSalt(10)
+		const hashedPassword = await bcrypt.hash(password, salt)
+		// create new user with model
+		const newUser = new UserModel(username, email, hashedPassword)
+		// save user to db
+		newUser.save()
+		// generate token based on user
+		const token = generateToken(newUser)
+		// return status, success, and user data including token
+		return res.status(201).json({
+			success: true,
+			message: 'User registered successfully',
+			data: {
+				userId: newUser.uuid,
+				username: newUser.username,
+				email: newUser.email,
+				token: token,
+			},
+		})
+	} catch (error) {
+		console.error('Error registering user: ', error)
+		return res
+			.status(500)
+			.json({ message: 'Server error, please try again later' })
+	}
 }
 
 // @desc Login new user
@@ -53,7 +88,7 @@ export const updateUser = (req: Request, res: Response) => {
 // @desc Get user account info
 // @route GET /user/:id
 // @access Private
-export const getUser = (req: Request, res: Response) => {
+export const getUserById = (req: Request, res: Response) => {
 	return res.status(200).json({ id: req.params.id })
 	// find existing user in db by id
 	// return if not found
