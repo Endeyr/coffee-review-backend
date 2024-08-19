@@ -28,16 +28,16 @@ export async function _readGoogleSheet(
 	sheetId: IReadGoogleSheet['sheetId'],
 	tabName: IReadGoogleSheet['tabName'],
 	range: IReadGoogleSheet['range']
-): Promise<string[][] | undefined | null> {
+): Promise<string[][] | null> {
 	try {
 		const res = await googleSheetClient.spreadsheets.values.get({
 			spreadsheetId: sheetId,
 			range: `${tabName}!${range}`,
 		})
 
-		return res.data.values
+		return res.data.values ?? []
 	} catch (error) {
-		console.error('Error reading Google Sheet:', error)
+		console.error('Error reading Google Sheet: ', error)
 		return null
 	}
 }
@@ -61,6 +61,6 @@ export async function _writeGoogleSheet(
 			},
 		})
 	} catch (error) {
-		console.error('Error writing to Google Sheet:', error)
+		console.error('Error writing to Google Sheet: ', error)
 	}
 }
