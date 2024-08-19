@@ -1,37 +1,30 @@
+import { uuidv7 as v7 } from 'uuidv7'
 import { writeSheet } from '../google/main'
+import { formattedDate } from '../helpers/date'
+import { IUser } from '../types/model'
 
-export interface IUser {
+export default class UserModel implements IUser {
 	uuid: string
 	username: string
 	email: string
 	password: string
-	createdAt?: Date
-}
-
-// TODO add model for google sheets backend
-export default class UserModel {
-	uuid: string
-	username: string
-	email: string
-	password: string
-	createdAt: string
-	constructor(
-		username: string,
-		email: string,
-		password: string,
-		createdAt?: Date | number
-	) {
-		// TODO generate uuid
-		this.uuid = ''
+	createdAt: Date
+	constructor(username: string, email: string, password: string) {
+		this.uuid = v7()
 		this.username = username
 		this.email = email
 		this.password = password
-		this.createdAt = createdAt?.toString() || Date.now().toString() // TODO update this to date type
+		this.createdAt = new Date()
 	}
 	save(): void {
-		// save to google sheets db
 		const userData = [
-			[this.uuid, this.username, this.email, this.password, this.createdAt],
+			[
+				this.uuid,
+				this.username,
+				this.email,
+				this.password,
+				formattedDate(this.createdAt),
+			],
 		]
 		writeSheet(userData)
 	}
