@@ -1,6 +1,7 @@
 import { writeSheet } from '../google/main'
 
 export interface IUser {
+	uuid: string
 	username: string
 	email: string
 	password: string
