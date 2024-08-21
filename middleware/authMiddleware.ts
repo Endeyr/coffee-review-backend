@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
-import { getUser } from '../google/main'
+import { getUserById } from '../google/main'
 import { UserAuthRequest } from './../types/middleware'
 
 export const protect = async (
@@ -27,7 +27,7 @@ export const protect = async (
 			process.env.JWT_SECRET as string
 		) as jwt.JwtPayload
 		const userReq = req as UserAuthRequest
-		userReq.user = await getUser(decoded.id)
+		userReq.user = await getUserById(decoded.id)
 		if (!userReq.user) {
 			return res.status(401).json({ message: 'Not authorized, user not found' })
 		}
