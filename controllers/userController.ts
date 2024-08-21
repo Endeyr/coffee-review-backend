@@ -126,19 +126,32 @@ export const updateUser = async (req: UserAuthRequest, res: Response) => {
 		if (!req.params.id) {
 			return res.status(400).json({ message: 'No id provided' })
 		}
+		// find existing user in db by id
 		const userToUpdate = await getUserById(req.params.id)
 		if (!userToUpdate) {
 			return res.status(400).json({ message: 'User not found in db' })
 		}
+		// return if not found
 		if (!req.user) {
 			return res.status(400).json({ message: 'User not found in req' })
 		}
 		if (!req.body || Object.keys(req.body).length === 0) {
 			return res.status(400).json({ message: 'Please add update fields' })
 		}
-		// update User
-		const updatedUser: string[][] = []
+		// update user information in db
+		const updatedUser: string[][] = [
+			[
+				userToUpdate.uuid,
+				userToUpdate.username,
+				userToUpdate.email,
+				userToUpdate.password,
+				userToUpdate.createdAt
+					? userToUpdate.createdAt.toISOString()
+					: new Date().toISOString(),
+			],
+		]
 
+		// return success, message, and user data
 		return res
 			.status(200)
 			.json({ updatedUser, message: 'User updated successfully' })
@@ -146,10 +159,6 @@ export const updateUser = async (req: UserAuthRequest, res: Response) => {
 		console.error('Error updating user:', error)
 		return res.status(500).json({ message: 'Server error' })
 	}
-	// find existing user in db by id
-	// return if not found
-	// update user information in db
-	// return success, message, and user data
 }
 
 // @desc Get user account info
