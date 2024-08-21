@@ -161,6 +161,17 @@ export async function deleteUserByInfo(user: IUser) {
 					throw new Error('Incomplete user data found')
 				}
 				if (row[0] === user.uuid) {
+					const index = rows.indexOf(row)
+					rows.splice(index, 1)
+
+					await _writeGoogleSheet(
+						googleSheetClient,
+						SHEET_ID,
+						TAB_NAME,
+						RANGE,
+						rows
+					)
+
 					return {
 						uuid: row[0] ?? throwError('uuid'),
 						username: row[1] ?? throwError('username'),
@@ -171,16 +182,6 @@ export async function deleteUserByInfo(user: IUser) {
 				}
 			}
 		}
-
-		const newData: string[][] = rows
-
-		await _writeGoogleSheet(
-			googleSheetClient,
-			SHEET_ID,
-			TAB_NAME,
-			RANGE,
-			newData
-		)
 
 		return null
 	} catch (error) {
