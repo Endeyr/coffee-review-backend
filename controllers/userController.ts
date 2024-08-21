@@ -1,8 +1,9 @@
 import bcrypt from 'bcryptjs'
-import { Request, Response } from 'express'
-import { getUser } from '../google/main'
+import { NextFunction, Request, Response } from 'express'
+import { deleteUserByInfo, getUserByEmail, getUserById } from '../google/main'
 import { generateToken } from '../helpers/generateToken'
 import UserModel from '../model/user'
+import { UserAuthRequest } from './../types/middleware'
 
 // @desc Register new user
 // @route POST /user/register
@@ -15,7 +16,7 @@ export const registerUser = async (req: Request, res: Response) => {
 			return res.status(400).json({ message: 'All fields are required' })
 		}
 		// search db for existing user
-		const existingUser = await getUser(email)
+		const existingUser = await getUserByEmail(email)
 		// if existing user return error
 		if (existingUser) {
 			return res
@@ -53,32 +54,98 @@ export const registerUser = async (req: Request, res: Response) => {
 // @desc Login new user
 // @route POST /user/login
 // @access Public
-export const loginUser = (req: Request, res: Response) => {
-	const { email, password } = req.body
-	return res.status(200).json({ email, password })
-	// search db for existing user
-	// return if not found
-	// return if incorrect email or password
-	// generate token
-	// return status, success, user data including token
+export const loginUser = async (req: Request, res: Response) => {
+	try {
+		const { email, password } = req.body
+		// search db for existing user
+		const existingUser = await getUserByEmail(email)
+		// return if not found
+		if (!existingUser) {
+			const error = new Error('Incorrect email or password')
+			return res.status(401).send(error.message)
+		}
+		const isPasswordValid = await bcrypt.compare(
+			password,
+			existingUser.password
+		)
+		// return if incorrect email or password
+		if (!isPasswordValid) {
+			const error = new Error('Incorrect email or password')
+			return res.status(401).send(error.message)
+		}
+		// generate token
+		const token = generateToken(existingUser)
+		// return status, success, user data including token
+		return res.status(200).json({
+			success: true,
+			message: 'User logged in successfully',
+			data: {
+				userId: existingUser.uuid,
+				email: existingUser.email,
+				username: existingUser.username,
+				token: token,
+			},
+		})
+	} catch (err) {
+		const error = err as Error
+		return res.status(401).send(error.message)
+	}
 }
 
 // @desc Delete user account
 // @route DELETE /user/delete/:id
 // @access Private
-export const deleteUser = (req: Request, res: Response) => {
-	return res.status(200).json({ id: req.params.id })
-	// find existing user in db by id
-	// return if not found
-	// delete user from db
-	// return success and message
+export const deleteUser = async (req: Request, res: Response) => {
+	try {
+		// find existing user in db by id
+		if (!req.params.id) {
+			return res.status(400).json({ message: 'No id provided' })
+		}
+		const userToDelete = await getUserById(req.params.id)
+		// return if not found
+		if (!userToDelete) {
+			return res.status(400).json({ message: 'User not found' })
+		}
+		// delete user from db
+		await deleteUserByInfo(userToDelete)
+		// return success and message
+		return res
+			.status(200)
+			.json({ id: req.params.id, message: 'User deleted successfully' })
+	} catch (error) {
+		console.error('Error deleting user:', error)
+		return res.status(500).json({ message: 'Server error' })
+	}
 }
 
 // @desc Update user account
 // @route PUT /user/update/:id
 // @access Private
-export const updateUser = (req: Request, res: Response) => {
-	return res.status(200).json({ id: req.params.id })
+export const updateUser = async (req: UserAuthRequest, res: Response) => {
+	try {
+		if (!req.params.id) {
+			return res.status(400).json({ message: 'No id provided' })
+		}
+		const userToUpdate = await getUserById(req.params.id)
+		if (!userToUpdate) {
+			return res.status(400).json({ message: 'User not found in db' })
+		}
+		if (!req.user) {
+			return res.status(400).json({ message: 'User not found in req' })
+		}
+		if (!req.body || Object.keys(req.body).length === 0) {
+			return res.status(400).json({ message: 'Please add update fields' })
+		}
+		// update User
+		const updatedUser: string[][] = []
+
+		return res
+			.status(200)
+			.json({ updatedUser, message: 'User updated successfully' })
+	} catch (error) {
+		console.error('Error updating user:', error)
+		return res.status(500).json({ message: 'Server error' })
+	}
 	// find existing user in db by id
 	// return if not found
 	// update user information in db
@@ -88,9 +155,21 @@ export const updateUser = (req: Request, res: Response) => {
 // @desc Get user account info
 // @route GET /user/:id
 // @access Private
-export const getUserById = (req: Request, res: Response) => {
-	return res.status(200).json({ id: req.params.id })
-	// find existing user in db by id
-	// return if not found
-	// return success and user data
+export const getUserInfo = (
+	req: UserAuthRequest,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		// return if not found
+		if (!req.user) {
+			return res.status(404).json({ message: 'User not found' })
+		}
+		// find existing user info from req
+		const { username, email } = req.user
+		// return success and user data
+		return res.status(200).json({ userId: username, email })
+	} catch (error) {
+		return next(error)
+	}
 }

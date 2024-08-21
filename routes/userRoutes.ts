@@ -1,7 +1,7 @@
 import express from 'express'
 import {
 	deleteUser,
-	getUserById,
+	getUserInfo,
 	loginUser,
 	registerUser,
 	updateUser,
@@ -18,6 +18,6 @@ userRouter.post('/register', validateData(userRegistrationSchema), registerUser)
 userRouter.post('/login', validateData(userLoginSchema), loginUser)
 userRouter.put('/update/:id', protect, updateUser)
 userRouter.delete('/delete/:id', protect, deleteUser)
-userRouter.get('/:id', protect, getUserById)
+userRouter.get('/:id', protect, getUserInfo)
 
 export default userRouter
