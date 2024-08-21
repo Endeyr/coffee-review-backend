@@ -1,6 +1,11 @@
 import bcrypt from 'bcryptjs'
 import { NextFunction, Request, Response } from 'express'
-import { deleteUserByInfo, getUserByEmail, getUserById } from '../google/main'
+import {
+	deleteUserByInfo,
+	getUserByEmail,
+	getUserById,
+	writeSheet,
+} from '../google/main'
 import { generateToken } from '../helpers/generateToken'
 import UserModel from '../model/user'
 import { UserAuthRequest } from './../types/middleware'
@@ -123,33 +128,37 @@ export const deleteUser = async (req: Request, res: Response) => {
 // @access Private
 export const updateUser = async (req: UserAuthRequest, res: Response) => {
 	try {
+		// return if id not provided on url
 		if (!req.params.id) {
 			return res.status(400).json({ message: 'No id provided' })
 		}
 		// find existing user in db by id
 		const userToUpdate = await getUserById(req.params.id)
+		// return if not found
 		if (!userToUpdate) {
 			return res.status(400).json({ message: 'User not found in db' })
 		}
-		// return if not found
 		if (!req.user) {
 			return res.status(400).json({ message: 'User not found in req' })
 		}
+		// return if no changes included in body
 		if (!req.body || Object.keys(req.body).length === 0) {
 			return res.status(400).json({ message: 'Please add update fields' })
 		}
-		// update user information in db
 		const updatedUser: string[][] = [
 			[
 				userToUpdate.uuid,
-				userToUpdate.username,
-				userToUpdate.email,
-				userToUpdate.password,
+				req.body.username || userToUpdate.username,
+				req.body.email || userToUpdate.email,
+				req.body.password || userToUpdate.password,
 				userToUpdate.createdAt
 					? userToUpdate.createdAt.toISOString()
 					: new Date().toISOString(),
 			],
 		]
+
+		// update user information in db
+		await writeSheet(updatedUser)
 
 		// return success, message, and user data
 		return res
