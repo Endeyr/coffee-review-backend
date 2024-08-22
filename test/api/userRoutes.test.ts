@@ -1,5 +1,5 @@
 import supertest from 'supertest'
-import app from '../../api/server'
+import app from '../../api'
 
 describe('User Routes /user', () => {
 	describe('registerUser /register', () => {

@@ -21,14 +21,11 @@ const server: http.Server = http.createServer(app)
 app.use(express.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
-// TODO write routes + controllers for user auth + data
 // Routes
 app.use('/user', userRouter)
 
 app.get('/', (req, res) => {
 	console.log(req.headers.host)
-	// const sheetData = await getSheet()
-	// console.log(sheetData)
 	res
 		.status(200)
 		.send(
